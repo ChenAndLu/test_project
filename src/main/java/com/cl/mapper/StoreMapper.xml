@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cl.mapper.StoreMapper">
+    <insert id="add" parameterType="com.cl.pojo.Store">
+        <selectKey resultType="integer" order="AFTER" keyProperty="id">
+            SELECT  LAST_INSERT_ID()
+        </selectKey>
+        insert into
+            t_store (storeCode, storeName, remake)
+        values (#{storeCode},#{storeName},#{remake})
+    </insert>
+
+    <insert id="inputStore">
+        insert into t_inputstore
+            (storeId, storeCode, storeName, productId, productCode, productName, nums, price, money, remark, createTime)
+        values (#{storeId},#{storeCode},#{storeName},#{productId},#{productCode},#{productName},#{nums},#{price},#{money},#{remark},#{date})
+    </insert>
+    <insert id="outputStore">
+        insert into t_outputstore
+        (storeId, storeCode, storeName, productId, productCode, productName, nums, price, money, remark, createTime)
+        values (#{storeId},#{storeCode},#{storeName},#{productId},#{productCode},#{productName},#{nums},#{price},#{money},#{remark},#{date})
+    </insert>
+
+    <update id="edit" parameterType="com.cl.pojo.Store">
+        update t_store 
+        <set>
+            <if test="storeCode != null">
+                storeCode = #{storeCode},
+            </if>
+            <if test="storeName != null">
+                storeName = #{storeName},
+            </if>
+            <if test="remake != null">
+                remake = #{remake}
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="delete" parameterType="integer">
+        delete from t_store where id = #{id}
+    </delete>
+
+    <select id="findAll" resultType="com.cl.pojo.Store">
+        select id, storeCode, storeName, remake from t_store;
+    </select>
+
+    <select id="findById" resultType="com.cl.pojo.Store" parameterType="integer">
+        select id, storeCode, storeName, remake from t_store where id = #{id}
+    </select>
+
+    <select id="innputNumsByStoreIDAndProductID" resultType="java.lang.Integer">
+        select sum(nums) from t_inputstore where storeId = #{storeId} and productId = #{productId}
+    </select>
+    <select id="outputNumsByStoreIDAndProductID" resultType="java.lang.Integer">
+        select sum(nums) from t_outputstore where storeId = #{storeId} and productId = #{productId}
+    </select>
+    <select id="findProductCount" resultType="java.lang.Long">
+        select count(id) from t_inputstore
+        <if test="queryString != null and queryString.length > 0">
+            where productName = #{queryString} or createTime like concat(#{queryString},'%')
+        </if>
+    </select>
+
+    <select id="selectByCondition" resultType="java.util.Map">
+        select id, storeId, storeCode, storeName, productId, productCode, productName, nums, price, money, remark, createTime
+        from t_inputstore
+        <if test="queryString != null and queryString.length > 0">
+            where productName = #{queryString} or createTime like concat(#{queryString},'%')
+        </if>
+        limit #{start}, #{pageSize}
+    </select>
+
+    <select id="checkStorck" resultType="java.util.Map">
+        select (
+                       (select sum(nums) as inputNums from t_inputstore where productId = #{productId})
+                       -
+                       (select sum(nums) as outputNums from t_outputstore where productId = #{productId})
+                   ) as stocksnums,
+               (
+                       (select sum(nums) as inputNums from t_inputstore where productId = #{productId})
+                       -
+                       (select sum(nums) as outputNums from t_outputstore where productId = #{productId})
+                   )* productPrice as storcksMoney
+        from t_product
+        where id = #{productId}
+    </select>
+
+
+</mapper>

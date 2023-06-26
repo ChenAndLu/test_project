@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cl.mapper.ProductMapper">
+    <insert id="add" parameterType="com.cl.pojo.Product">
+        <selectKey resultType="Integer" order="AFTER" keyProperty="id">
+            select LAST_INSERT_ID()
+        </selectKey>
+        insert into t_product
+            (productCode, productName, productPrice, productRemark, createTime)
+        values
+            (#{productCode},#{productName},#{productPrice},#{productRemark},#{createTime})
+    </insert>
+
+    <update id="edit" parameterType="com.cl.pojo.Product">
+        update t_product
+        <set>
+            <if test="productCode != null">
+                productCode = #{productCode},
+            </if>
+            <if test="productName != null">
+                productName = #{productName},
+            </if>
+            <if test="productPrice != null">
+                productPrice = #{productPrice},
+            </if>
+            <if test="productRemark != null">
+                productRemark = #{productRemark},
+            </if>
+            <if test="createTime != null">
+                createTime = #{createTime}
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteById" parameterType="Integer">
+        delete from t_product where id = #{id}
+    </delete>
+
+
+    <select id="findAll" resultType="com.cl.pojo.Product">
+        select id, productCode, productName, productPrice, productRemark,createTime from t_product order by createTime desc
+    </select>
+
+
+    <select id="findProductCount" resultType="java.lang.Long" parameterType="string">
+        select count(id) from t_product
+        <if test="queryString != null and queryString.length > 0">
+            where productCode = #{queryString}
+            or productName = #{queryString}
+            or productRemark = #{queryString}
+        </if>
+    </select>
+
+
+        <select id="selectByCondition" resultType="com.cl.pojo.Product">
+        select
+            id, productCode, productName, productPrice, productRemark, createTime
+        from t_product
+        <if test="queryString != null and queryString.length > 0">
+            where productCode = #{queryString}
+            or productName = #{queryString}
+            or productRemark = #{queryString}
+        </if>
+        limit #{start}, #{pageSize}
+    </select>
+    <select id="findById" resultType="com.cl.pojo.Product">
+        select id, productCode, productName, productPrice, productRemark, createTime from t_product where id = #{id}
+    </select>
+</mapper>
